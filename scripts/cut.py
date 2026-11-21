@@ -23,7 +23,14 @@ import re as _re
 _SLURS = _re.compile(r"\b(nigg\w*|n[i1]gg?a\w*|f[a@]gg?\w*|retard\w*|tranny\w*|chink\w*|spic\w*|kike\w*)\b", _re.I)
 
 
-_SWEARS = _re.compile(r"\b(fuck\w*|motherfuck\w*|shit\w*|bitch\w*|cunt\w*|dick\w*|pussy\w*|asshole\w*|bastard\w*|whore\w*|slut\w*)\b", _re.I)
+_SWEARS = _re.compile(r"\b(fuck\w*|motherfuck\w*|shit\w*|bitch\w*|cunt\w*|dick\w*|pussy\w*|asshole\w*|bastard\w*|whore\w*|slut\w*"
+                      r"|anjing\w*|bangsat\w*|kontol\w*|memek\w*|bajingan\w*|jancok\w*|goblok\w*|tolol\w*)\b", _re.I)
+
+
+def ass_color(hexrgb):
+    """'#RRGGBB' -> ASS '&H00BBGGRR&'."""
+    h = hexrgb.lstrip('#')
+    return f"&H00{h[4:6]}{h[2:4]}{h[0:2]}&".upper()
 
 
 def _mask(m):
@@ -51,7 +58,9 @@ def wrap(text, width):
     return lines + ([cur] if cur else [])
 
 
-def build_ass(words, s0, e0, hook, cap_y, title=None, caps='word', profanity=False):
+def build_ass(words, s0, e0, hook, cap_y, title=None, caps='word', profanity=False, speakers=None, min_p=0.0):
+    """speakers: {"<spk id>": "#RRGGBB"}; words of speakers not in the map (game/NPC voices, unknown) are
+    not subtitled, and each word group is drawn whole in its speaker's colour. min_p drops unsure words."""
     hdr = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {W}
@@ -70,11 +79,14 @@ Style: Bubble,Arial,58,&H00000000,&H00000000,&H00FFFFFF,&H00FFFFFF,-1,0,0,0,100,
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
     ev = []
-    ws = [dict(w, w=clean(w["w"], profanity)) for w in words if s0 <= w["s"] < e0 and w["w"]]
-    # groups of up to 3 words, break on punctuation or pauses
+    ws = [dict(w, w=clean(w["w"], profanity)) for w in words if s0 <= w["s"] < e0 and w["w"] and w.get("p", 1) >= min_p]
+    if speakers is not None:
+        ws = [dict(w, col=ass_color(speakers[str(w.get("spk", -1))])) for w in ws if str(w.get("spk", -1)) in speakers]
+    # groups of up to 3 words, break on punctuation, pauses or a change of speaker
     groups, cur = [], []
     for w in ws:
-        if cur and (len(cur) == 3 or w["s"] - cur[-1]["e"] > 0.6 or cur[-1]["w"][-1:] in ".?!,"):
+        if cur and (len(cur) == 3 or w["s"] - cur[-1]["e"] > 0.6 or cur[-1]["w"][-1:] in ".?!,"
+                    or w.get("col") != cur[-1].get("col")):
             groups.append(cur); cur = []
         cur.append(w)
     if cur:
@@ -90,7 +102,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             parts = []
             for j, x in enumerate(g):
                 t = esc(x["w"].upper())
-                parts.append("{\\c&H0000E5FF&}" + t + "{\\c&H00FFFFFF&}" if j == k else t)
+                if speakers is not None:  # whole group in the speaker colour, active word slightly bigger
+                    parts.append("{\\fscx114\\fscy114}" + t + "{\\fscx100\\fscy100}" if j == k else t)
+                else:
+                    parts.append("{\\c&H0000E5FF&}" + t + "{\\c&H00FFFFFF&}" if j == k else t)
+            if speakers is not None:
+                parts[0] = "{\\c" + g[0]["col"] + "}" + parts[0]
             pop = "{\\fscx112\\fscy112\\t(0,90,\\fscx100\\fscy100)}" if k == 0 else ""
             if caps == 'bubble':
                 if k == 0:
@@ -114,7 +131,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return hdr + "\n".join(ev) + "\n"
 
 
-CAP_Y = {"fill": 1380, "blur": 1460, "facecam": 1120, "react": 1560}
+CAP_Y = {"fill": 1380, "blur": 1460, "facecam": 1120, "react": 1560, "fullcam": 1460}
+CAM_H = 728  # facecam layout: cam panel height (even, so the stack is exactly 1920)
 TOP = 730  # react layout: face panel height = seam y (even)
 GAME_H = H - TOP  # 1190
 
@@ -147,10 +165,13 @@ def video_filter(layout, cam, ass, band=None, cam_side='right', src=None, game_x
             y0, bh, secs = band
             en = f":enable='lte(t,{secs})'" if secs > 0 else ''
             v = v[:-3] + f"[v0];[v0]drawbox=x=0:y={y0}:w=iw:h={bh}:color=white@1:t=fill{en}[v]"
+    elif layout == "fullcam":  # talking head with no game on screen: 9:16 crop centred on the face
+        cx = float(cam.split(":")[0]) + float(cam.split(":")[2]) / 2 if cam and ":" in cam else 0.5
+        v = f"[0:v]scale=-2:{H},crop={W}:{H}:'max(0,min(iw-{W},iw*{cx:.4f}-{W // 2}))':0,setsar=1[v]"
     else:
         x, y, w, h = map(float, cam.split(":"))
-        v = (f"[0:v]split[a][b];[a]crop=iw*{w}:ih*{h}:iw*{x}:ih*{y},scale={W}:{int(H * 0.38)}:force_original_aspect_ratio=increase,"
-             f"crop={W}:{int(H * 0.38)}[cam];[b]scale=-2:{H - int(H * 0.38)},crop={W}:{H - int(H * 0.38)}[game];[cam][game]vstack[v]")
+        v = (f"[0:v]split[a][b];[a]crop=iw*{w}:ih*{h}:iw*{x}:ih*{y},scale={W}:{CAM_H}:force_original_aspect_ratio=increase,"
+             f"crop={W}:{CAM_H},setsar=1[cam];[b]scale=-2:{H - CAM_H},crop={W}:{H - CAM_H},setsar=1[game];[cam][game]vstack[v]")
     sub = str(ass).replace("\\", "/").replace(":", "\\:")
     return v + f";[v]fps=30,subtitles='{sub}'[vo]"
 
@@ -199,7 +220,7 @@ def game_offset(video, s0, e0, src, cam_box):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("job"); ap.add_argument("--pick", type=int, default=1)
-    ap.add_argument("--layout", choices=["fill", "blur", "facecam", "react"], default="blur")
+    ap.add_argument("--layout", choices=["fill", "blur", "facecam", "react", "fullcam"], default="blur")
     ap.add_argument("--title", default="", help="reaction title, e.g. 'Speed REALIZED why GTA 6 took 13 YEARS'")
     ap.add_argument("--title-style", choices=["box", "outline"], default="box")
     ap.add_argument("--title-secs", type=float, default=0, help="0 = whole clip")

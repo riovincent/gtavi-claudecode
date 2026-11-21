@@ -1,0 +1,14 @@
+{
+ "en": {
+  "hype": ["no way", "oh my god", "omg", "what", "wait", "bro", "let'?s go", "holy", "insane", "crazy", "yo+", "wtf", "dude", "look at", "nah", "run", "go go", "siu+", "sewey"],
+  "event": ["mission", "passed", "complete[d]?", "we did it", "finally", "wasted", "busted", "died", "dead", "cops?", "police", "chase", "escape[d]?", "crash(ed)?", "heist", "robb(ed|ery)", "money", "bank", "jail", "arrest(ed)?", "wanted", "stars?", "explod(e|ed)", "lucia", "jason", "called it", "told you", "glitch"],
+  "chat_hype": ["LMAO", "LMFAO", "LOL", "KEKW", "OMEGALUL", "W+", "CLIP", "NO WAY", "HOLY"],
+  "profanity": ["fuck\\w*", "motherfuck\\w*", "shit\\w*", "bitch\\w*", "cunt\\w*", "dick\\w*", "pussy\\w*", "asshole\\w*", "bastard\\w*", "whore\\w*", "slut\\w*"]
+ },
+ "id": {
+  "hype": ["anjir", "anjay", "anjrit", "gila", "wkwk\\w*", "mantap", "gokil", "asli", "buset", "astaga", "ya ampun", "waduh", "woi", "woy", "lah", "loh", "serius", "parah", "ayo", "gas", "kabur"],
+  "event": ["misi", "berhasil", "akhirnya", "selesai", "mati", "kalah", "menang", "polisi", "dikejar", "kabur", "nabrak", "tabrak", "meledak", "rampok", "bank", "duit", "uang", "penjara", "ditangkap", "lucia", "jason", "udah kubilang", "kan bener", "bug", "glitch"],
+  "chat_hype": ["WKWK\\w*", "KOCAK", "ANJAY", "GG", "NGAKAK", "LMAO", "W+"],
+  "profanity": ["anjing\\w*", "bangsat\\w*", "kontol\\w*", "memek\\w*", "babi\\w*", "tai\\w*", "goblok\\w*", "tolol\\w*", "bajingan\\w*", "jancok\\w*", "asu\\w*"]
+ }
+}
