@@ -135,9 +135,20 @@ class Whisper:
             return info.language
 
     def chunk(self, pcm, offset):
+        try:
+            return self._chunk(pcm, offset)
+        except RuntimeError as ex:  # CUDA libs missing on the box: fall back to CPU once, keep going
+            if self.dev == "cpu":
+                raise
+            log(f"GPU whisper failed ({str(ex)[:80]}); switching to CPU")
+            self.dev, self.ct, self.models = "cpu", "int8", {}
+            return self._chunk(pcm, offset)
+
+    def _chunk(self, pcm, offset):
         lang = self.lang(pcm)
         m = self.model("small" if lang == "en" else "large-v3-turbo")
         segs, _ = m.transcribe(pcm, language=lang, word_timestamps=True, vad_filter=True)
+        segs = list(segs)  # run the generator here so GPU errors surface inside the try
         out = []
         for s in segs:
             ws = [{"w": w.word.strip(), "s": round(offset + w.start, 2), "e": round(offset + w.end, 2),
