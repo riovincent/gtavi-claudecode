@@ -146,6 +146,7 @@ def contact_sheet(mp4, teaser_len, out):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("picks"); ap.add_argument("--out", required=True); ap.add_argument("--profile")
+    ap.add_argument("--inputs", help="folder with pre-cut sections (pick['section_file'])")
     a = ap.parse_args()
     prof = load_json(a.profile) if a.profile else {}
     picks = load_json(a.picks)
@@ -154,7 +155,10 @@ def main():
         d = root / p["id"]; d.mkdir(exist_ok=True)
         s, e = p["section"]
         src = d / "section.mp4"
-        if p.get("src"):  # local file (tests): cut the section out of it
+        if p.get("section_file") and a.inputs:  # section already cut (laptop download): starts at s
+            import shutil
+            shutil.copy2(Path(a.inputs) / p["section_file"], src)
+        elif p.get("src"):  # local file (tests): cut the section out of it
             run([tool("ffmpeg"), "-y", "-v", "error", "-ss", str(s), "-to", str(e), "-i", p["src"], "-c:v", "libx264",
                  "-preset", "veryfast", "-crf", "16", "-c:a", "aac", str(src)])
         if not src.exists():

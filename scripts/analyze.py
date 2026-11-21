@@ -257,21 +257,38 @@ def main():
     a = ap.parse_args()
     d = Path(a.out); d.mkdir(parents=True, exist_ok=True)
     prof = load_json(a.profile) if a.profile else {}
-    info = ytdlp_json(a.url)
+    local = Path(a.url).is_dir()  # inputs prepared elsewhere (e.g. a laptop): info.json, audio.*, chat.live_chat.json.gz
+    if local:
+        src = Path(a.url)
+        info = load_json(src / "info.json")
+        aud = next(p for p in src.glob("audio.*"))
+        wav = d / "audio.wav"
+        run([tool("ffmpeg"), "-y", "-v", "error", "-i", str(aud), "-ac", "1", "-ar", str(SR), str(wav)])
+        gz = src / "chat.live_chat.json.gz"
+        if (src / "chat.live_chat.json").exists():  # in case the dataset host unpacked the .gz
+            import shutil
+            shutil.copy2(src / "chat.live_chat.json", d / "chat.live_chat.json")
+        elif gz.exists():
+            import gzip, shutil
+            with gzip.open(gz, "rb") as fi, open(d / "chat.live_chat.json", "wb") as fo:
+                shutil.copyfileobj(fi, fo)
+    else:
+        info = ytdlp_json(a.url)
     meta = {k: info.get(k) for k in ("id", "title", "channel", "uploader_id", "webpage_url", "duration", "upload_date", "was_live")}
     save_json(d / "info.json", meta)
     window_s = a.max_minutes * 60 if a.max_minutes else 0
-    log(f"{meta['title']} | {meta['duration']} s | window {'all' if not window_s else f'{a.max_minutes} min'}")
+    log(f"{meta['title']} | {meta['duration']} s | window {'all' if not window_s else f'{a.max_minutes} min'} | {'local inputs' if local else 'url'}")
 
-    th = []
-    if info.get("was_live"):
-        th.append(threading.Thread(target=download_chat, args=(a.url, d, window_s or meta["duration"], a.chat_timeout)))
-    lowres = {}
-    th.append(threading.Thread(target=lambda: lowres.update(v=download_lowres(a.url, d, a.max_minutes))))
+    th, lowres = [], {}
+    if not local:
+        if info.get("was_live"):
+            th.append(threading.Thread(target=download_chat, args=(a.url, d, window_s or meta["duration"], a.chat_timeout)))
+        th.append(threading.Thread(target=lambda: lowres.update(v=download_lowres(a.url, d, a.max_minutes))))
     for t in th:
         t.start()
 
-    wav = download_audio(a.url, d, a.max_minutes)
+    if not local:
+        wav = download_audio(a.url, d, a.max_minutes)
     n = int(wav_seconds(wav))
     log(f"audio ready: {n / 3600:.2f} h")
     wh = Whisper(prof.get("lang", "auto"))
@@ -359,7 +376,7 @@ def main():
         top = sorted(x["samples"], reverse=True)[:6] + x["samples"][:: max(1, len(x["samples"]) // 8)][:8]
         x["samples"] = [f"[{t:.0f}s] {txt}" for _, t, txt in top]
     save_json(d / "speakers.json", {str(k): v for k, v in sorted(spk.items())})
-    for p in (d / "audio.wav", d / "lowres.mp4"):
+    for p in (d / "audio.wav", d / "lowres.mp4", d / "chat.live_chat.json"):
         p.unlink(missing_ok=True)
     log(f"done: {len(words)} words, langs {dict(langs)}, {len(wins)} windows -> {d}")
 
