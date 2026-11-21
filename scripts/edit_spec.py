@@ -102,8 +102,8 @@ def render_cut(p, cut, src, off, layout, cam, d, name, credit):
     parts, first_main = [], True
     for i, (kind, a, b, f) in enumerate(plan_segments(cut)):
         dur = (b - a) / (f if kind == "slowmo" else 1)
-        extra = [f"Dialogue: 1,{ts(0)},{ts(dur)},Credit,,0,0,0,,{{\\pos({W // 2},{y['credit']})}}{esc(credit)}"]
-        if kind == "teaser" or (first_main and not cut.get("teaser") and kind != "teaser"):
+        extra = [f"Dialogue: 1,{ts(0)},{ts(dur)},Credit,,0,0,0,,{{\\pos({W // 2},{y['credit']})}}{esc(credit)}"] if credit else []
+        if p.get("hook") and (kind == "teaser" or (first_main and not cut.get("teaser") and kind != "teaser")):
             extra.append(f"Dialogue: 2,{ts(0)},{ts(min(dur, 3.5))},Hook,,0,0,0,,{{\\pos({W // 2},{y['hook']})}}{wrap(esc(p['hook'].upper()))}")
         pa = cut.get("punch_at")
         if p.get("punchline") and pa is not None and a <= pa < b and kind != "teaser":
@@ -147,9 +147,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("picks"); ap.add_argument("--out", required=True); ap.add_argument("--profile")
     ap.add_argument("--inputs", help="folder with pre-cut sections (pick['section_file'])")
+    ap.add_argument("--clean", action="store_true",
+                    help="plain cut: no subtitles, hook, punchline, credit text, teaser, flash/whoosh or effects")
     a = ap.parse_args()
     prof = load_json(a.profile) if a.profile else {}
     picks = load_json(a.picks)
+    if a.clean:
+        for p in picks:
+            p.update(words=[], hook=None, punchline=None, credit=None)
+            for cut in p["cuts"].values():
+                cut.pop("teaser", None); cut.pop("effect", None)
     root = Path(a.out); root.mkdir(parents=True, exist_ok=True)
     for p in picks:
         d = root / p["id"]; d.mkdir(exist_ok=True)
@@ -184,7 +191,7 @@ def main():
                 layout, cam = "blur", None
         if layout == "facecam" and not cam:
             layout = "blur"
-        credit = p.get("credit") or prof.get("credit", "")
+        credit = "" if a.clean else (p.get("credit") or prof.get("credit", ""))
         payoff = (p["cuts"].get("short") or {}).get("punch_at") or (s + e) / 2
         run([tool("ffmpeg"), "-y", "-v", "error", "-ss", f"{payoff - s:.2f}", "-i", str(src), "-frames:v", "1", str(d / "proof.jpg")])
         for name, cut in p["cuts"].items():

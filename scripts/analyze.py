@@ -16,6 +16,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent))
 from common import load_json, run, save_json, tool, ytdlp_base, ytdlp_json
 from moments import chat_series, smooth, z
+import signals
 
 HERE = Path(__file__).parent
 SR = 16000
@@ -327,7 +328,11 @@ def main():
     chat = chat_series(d, n, None, info)
     burst = np.convolve(chat, np.ones(15) / 15, "same") / (np.convolve(chat, np.ones(600) / 600, "same") + 1)
     chatz = np.clip(z(burst), 0, None) if chat.any() else np.zeros(n)
-    score = loud + 0.8 * z(smooth(hype, 5)).clip(0) + 1.2 * z(smooth(event, 8)).clip(0) + 1.5 * chatz
+    # learned GTA 6 moment cues (library/moment-signals.json): category phrases, brag->spike, NPC line loops
+    cue, karma, loop, cue_hits = signals.per_second(segs, n, loud=loud)
+    learned = z(smooth(cue + loop + karma, 8)).clip(0, 4)  # capped so one cue-dense spot can't take every window
+    score = (loud + 0.8 * z(smooth(hype, 5)).clip(0) + 1.2 * z(smooth(event, 8)).clip(0) + 1.5 * chatz
+             + 1.2 * learned)
 
     # chat text per second for context
     chat_txt = {}
@@ -359,7 +364,9 @@ def main():
         cw = Counter(w.upper() for t in range(p - 10, p + 20) for m in chat_txt.get(t, []) for w in re.findall(r"\w+", m))
         wins.append({"peak": int(p), "start": s0, "end": e0, "score": round(float(score[p]), 2),
                      "signals": {"loud": round(float(loud[p]), 2), "hype": int(hype[max(0, p - 5):p + 5].sum()),
-                                 "event": int(event[max(0, p - 15):p + 15].sum()), "chat_burst": round(float(burst[p]), 2)},
+                                 "event": int(event[max(0, p - 15):p + 15].sum()), "chat_burst": round(float(burst[p]), 2),
+                                 "learned": round(float(learned[p]), 2)},
+                     "cues": sorted({c for t in range(s0, e0) for c in cue_hits.get(t, [])}),
                      "scene": scene_at(p), "chat_top": [w for w, _ in cw.most_common(8)],
                      "lines": [f"[{s['s']:.1f} spk{s['spk']}] {s['text']}" for s in inwin]})
     wins.sort(key=lambda w: w["start"])

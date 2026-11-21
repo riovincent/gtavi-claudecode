@@ -1,0 +1,111 @@
+{
+  "version": "2026-11-21",
+  "source": "library/gta6-moments.md (example_ids refer to its # column)",
+  "categories": {
+    "instant_karma": {
+      "transcript_cues_en": ["if i get", "watch this", "i'm the king", "easy", "no way i die", "i got this", "trust me"],
+      "transcript_cues_id": ["gue rajanya", "gampang", "liat nih", "trust me", "pasti bisa", "gak bakal mati", "santai aja"],
+      "game_event_cues": ["death / wasted screen within 30 s of the brag", "crash", "animal attack (alligator, buaya)", "mission failed"],
+      "audio": "calm boast, then loudness spike or scream 2-20 s later",
+      "typical_length_s": [15, 45],
+      "example_ids": [3, 27, 28]
+    },
+    "npc_ai_chaos": {
+      "transcript_cues_en": ["useless", "what is he doing", "bro what", "nobody knows", "same thing"],
+      "transcript_cues_id": ["bocil", "dibodo-bodoin", "ngapain sih", "sotoy", "asbun", "goblok"],
+      "game_event_cues": ["same NPC line repeated 3+ times within 40 s (repeated n-gram from a non-streamer speaker)", "NPC fights back", "carjack goes wrong", "animal in car"],
+      "audio": "rising frustration; laugh fit at the end",
+      "typical_length_s": [20, 60],
+      "example_ids": [6, 15, 30, 38]
+    },
+    "physics_glitch": {
+      "transcript_cues_en": ["what the", "bro the game", "glitch", "how", "it's bugging", "fell through"],
+      "transcript_cues_id": ["kok bisa", "nge-bug", "glitch", "anjir kenapa", "tembus", "terbang"],
+      "game_event_cues": ["vehicle launched in the air", "character falls through floor", "boat stuck", "clipping through walls"],
+      "audio": "sudden silence then disbelief laugh",
+      "typical_length_s": [10, 30],
+      "example_ids": [13, 22, 23, 29]
+    },
+    "cop_wanted_escalation": {
+      "transcript_cues_en": ["cops", "they're still on us", "go go go", "lose them", "six stars", "we gotta get out"],
+      "transcript_cues_id": ["polisi", "kabur", "kejar", "bintang", "gas gas", "cabut"],
+      "game_event_cues": ["wanted level increase", "helicopter", "roadblock", "chase music start"],
+      "audio": "sustained high loudness 20+ s with rapid speech",
+      "typical_length_s": [30, 90],
+      "example_ids": [13]
+    },
+    "heist_clutch_or_fail": {
+      "transcript_cues_en": ["we did it", "i thought i failed", "mission passed", "let's go", "gg", "hurry up"],
+      "transcript_cues_id": ["berhasil", "gg", "rampok", "perampokan pertama", "misi", "hampir gagal", "aman"],
+      "game_event_cues": ["mission passed banner", "vault open", "cash pickup", "escape complete"],
+      "audio": "tension (fast speech) then loud release",
+      "typical_length_s": [30, 90],
+      "example_ids": [9, 10, 33]
+    },
+    "life_sim_irony": {
+      "transcript_cues_en": ["thousand dollars", "bank account", "broke", "rich", "my house", "hair", "date"],
+      "transcript_cues_id": ["ribu", "juta", "miskin", "kaya", "duit", "rumah", "rambut", "kriminal baik", "nabung"],
+      "game_event_cues": ["money counter change", "shop / barber / house menu", "register vehicle"],
+      "audio": "overhyped reaction to a mundane event",
+      "typical_length_s": [20, 60],
+      "example_ids": [5, 32, 37]
+    },
+    "story_reaction": {
+      "transcript_cues_en": ["don't tell me", "what happened to", "no way", "is she dead", "bad ending", "what was that"],
+      "transcript_cues_id": ["jangan bilang", "mati", "kenapa dia", "bad ending", "true ending", "sedih"],
+      "game_event_cues": ["cutscene end", "character death", "end credits"],
+      "audio": "quiet cutscene then shout or silence; chat burst",
+      "typical_length_s": [20, 60],
+      "example_ids": [1, 8],
+      "spoiler_risk": true
+    },
+    "chat_vs_streamer": {
+      "transcript_cues_en": ["chat", "y'all", "stop telling me", "you guys said", "save the game"],
+      "transcript_cues_id": ["bocil ngatur", "serba salah", "kalian", "chat bilang", "viewer 0", "baca chat"],
+      "game_event_cues": ["streamer stops playing to argue", "menu idle"],
+      "audio": "fast speech, no game audio peak",
+      "typical_length_s": [20, 60],
+      "example_ids": [11, 12, 35, 40]
+    },
+    "irl_reaction": {
+      "transcript_cues_en": ["i didn't save", "no sleep", "hours", "i'm crying", "13 years", "my reality"],
+      "transcript_cues_id": ["belum save", "ke-save", "gak tidur", "jam", "nangis", "rekor"],
+      "game_event_cues": ["console crash / black screen", "load screen after crash", "end credits"],
+      "audio": "scream, crying or long laugh; loudness far above local baseline",
+      "typical_length_s": [15, 60],
+      "example_ids": [1, 2, 7, 21]
+    },
+    "first_time_discovery": {
+      "transcript_cues_en": ["there's a", "you can", "generational", "inside the game", "ufo", "secret"],
+      "transcript_cues_id": ["ternyata", "bisa", "ada ufo", "rahasia", "detail", "persis kayak trailer"],
+      "game_event_cues": ["easter egg (UFO at Starlet Motel after 2 AM, Cool Dog jet ski, Dog Island)", "minigame inside game", "trailer scene recreated"],
+      "audio": "rising wonder, 'wait wait wait'",
+      "typical_length_s": [20, 60],
+      "example_ids": [4, 17]
+    },
+    "skill_flex": {
+      "transcript_cues_en": ["watch this", "first try", "only veterans know", "too easy"],
+      "transcript_cues_id": ["cuma veteran yang tau", "liat", "gampang banget", "sekali coba", "windah 1"],
+      "game_event_cues": ["clean steal", "headshot", "fast finish"],
+      "audio": "confident build-up then hype shout",
+      "typical_length_s": [15, 45],
+      "example_ids": [24, 34, 36]
+    }
+  },
+  "avoid_patterns": [
+    "sexual / strip-club / lotion scenes (e.g. Speed VOD 2:41)",
+    "slurs or hate speech in streamer or chat lines",
+    "story spoilers unless clearly labelled",
+    "long cutscene windows where only game characters talk (no streamer voice)",
+    "ad reads and sponsor segments",
+    "AI-generated fake GTA 6 clips; always cut from the streamer's own VOD",
+    "bathroom/away segments with empty chair unless another person talks"
+  ],
+  "scoring_notes": [
+    "Boost windows where a streamer brag/prediction is followed by a loudness spike within 20 s (instant karma).",
+    "Boost repeated NPC n-grams (same line 3+ times in 40 s) when the streamer reacts.",
+    "Penalise windows where >70% of words come from non-streamer speakers (cutscene).",
+    "Treat 'save' panic words and console-crash words as high-value IRL cues.",
+    "Money and milestone words (thousand, ribu, juta, berhasil, first) mark life-sim and heist payoffs."
+  ]
+}
