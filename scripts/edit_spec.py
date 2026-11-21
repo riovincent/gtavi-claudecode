@@ -166,6 +166,12 @@ def main():
                                 "--download-sections", f"*{s}-{e}", "--force-keyframes-at-cuts", "-o", str(src), p["url"]])
         layout = p.get("layout") or prof.get("layout", "facecam")
         cam = p.get("cam") or prof.get("cam")
+        if cam and layout == "facecam" and not p.get("layout"):
+            # pinned webcam box for game scenes; a full-camera scene (no game, big face) gets the fullcam layout
+            from facecam import find_cam
+            r = find_cam(str(src))
+            if r.get("mode") != "cam" and r.get("face") and r["face"][2] > 0.15:
+                layout, cam = "fullcam", ":".join(f"{v:.4f}" for v in r["face"])
         if not cam:
             from facecam import find_cam
             r = find_cam(str(src))

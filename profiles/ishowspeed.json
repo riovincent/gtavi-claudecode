@@ -4,7 +4,7 @@
  "lang": "auto",
  "main_color": "#FFE500",
  "other_color": "#7CC04A",
- "cam": null,
+ "cam": "0.0000:0.4292:0.2016:0.2181",
  "layout": "facecam",
  "hashtags": ["#gta6", "#ishowspeed", "#speed", "#gaming", "#funnymoments"]
 }
